@@ -1,0 +1,4 @@
+# /.docker/.env
+/.docker/mariadb/datamysql
+/supervisord.log
+/supervisord.pid

@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+  mariadb:
+    image: mariadb:10.4
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mariadb/charset.cnf:/etc/mysql/conf.d/charset.cnf
+      - ./mariadb/datamysql:/var/lib/mysql
+    networks:
+      - laravel-network
+    domainname: mariadb
+    hostname: mariadb
+    env_file:
+      - ./.env
+    restart: on-failure
+  cli:
+    build:
+      context: ./
+      dockerfile: cli.dockerfile
+    volumes:
+      - ./../:/var/www/html
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+      - ./php/conf.d/session.ini:/usr/local/etc/php/conf.d/session.ini
+      - ~/.ssh/known_hosts:/root/.ssh/known_hosts
+      - ${SSH_AUTH_SOCK}:/ssh-auth.sock
+    working_dir: /var/www/html
+    # tty: true
+    networks:
+      - laravel-network
+    env_file:
+      - ./.env
+  app:
+    build:
+      context: ./
+      dockerfile: app.dockerfile
+    volumes:
+      - ./../:/var/www/html
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+      - ./php/conf.d/session.ini:/usr/local/etc/php/conf.d/session.ini
+      - ~/.ssh/known_hosts:/root/.ssh/known_hosts
+      - ${SSH_AUTH_SOCK}:/ssh-auth.sock
+    working_dir: /var/www/html
+    networks:
+      - laravel-network
+    env_file:
+      - ./.env
+  web:
+    build:
+      context: ./
+      dockerfile: web.dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ./../:/var/www/html
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+      - ./php/conf.d/session.ini:/usr/local/etc/php/conf.d/session.ini
+    working_dir: /var/www/html
+    networks:
+      laravel-network:
+        aliases:
+          - laravel.localhost
+    env_file:
+      - ./.env
+
+networks:
+  laravel-network:
+    driver: bridge
